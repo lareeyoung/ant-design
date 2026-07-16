@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agent OS">
+  <title>Agent OS Live</title>
+  <style>
+    :root{color-scheme:dark;--bg:#06101d;--card:rgba(15,30,48,.72);--line:rgba(148,163,184,.14);--text:#f8fafc;--muted:#8fa2b8;--blue:#38bdf8;--green:#4ade80;--amber:#fbbf24;--red:#fb7185}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Microsoft YaHei UI",sans-serif;color:var(--text)}
+    body{min-height:100dvh;overflow:hidden;background:radial-gradient(circle at 50% -10%,#10345a 0,transparent 42%),linear-gradient(180deg,#071525 0,#050b13 100%)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 30%,rgba(56,189,248,.035),transparent 70%)}
+    .app{width:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 12px);max-width:760px;margin:auto;overflow:hidden}
+    .app>*{min-width:0}
+    header{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:8px;padding:4px 2px 14px}
+    .brand{display:flex;min-width:0;align-items:center;gap:10px;font-weight:750;letter-spacing:.2px;white-space:nowrap}
+    .mark{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,#0ea5e9,#7c3aed);display:grid;place-items:center;box-shadow:0 10px 34px rgba(14,165,233,.25)}
+    .mark:after{content:"A";font-size:17px;font-weight:850}
+    .status{display:flex;flex:0 1 auto;min-width:0;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(15,23,42,.65);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:12px;white-space:nowrap;backdrop-filter:blur(14px)}
+    .dot{width:7px;height:7px;border-radius:50%;background:#64748b;box-shadow:0 0 0 4px rgba(100,116,139,.12)}
+    .status.online .dot{background:var(--green);box-shadow:0 0 0 4px rgba(74,222,128,.13),0 0 18px rgba(74,222,128,.5)}
+    .status.online{color:#d1fae5}
+    main{min-height:0;display:grid;grid-template-rows:minmax(170px,.72fr) minmax(180px,1.1fr);gap:12px}
+    .live{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line);border-radius:28px;background:linear-gradient(160deg,rgba(17,36,58,.75),rgba(6,16,29,.62));backdrop-filter:blur(20px)}
+    .aura{position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.2),rgba(99,102,241,.07) 48%,transparent 70%);filter:blur(4px);animation:float 7s ease-in-out infinite}
+    @keyframes float{50%{transform:scale(1.12) translateY(-6px)}}
+    .orb{position:relative;width:108px;height:108px;border:0;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 34% 28%,#d8f6ff 0,#4fd4ff 13%,#2779f4 42%,#4c1d95 72%,#0b1023 100%);box-shadow:0 0 0 1px rgba(255,255,255,.22) inset,0 20px 70px rgba(37,99,235,.4),0 0 48px rgba(56,189,248,.2);transition:transform .2s ease,filter .2s ease}
+    .orb:active{transform:scale(.96)}
+    .orb:before,.orb:after{content:"";position:absolute;inset:-13px;border-radius:50%;border:1px solid rgba(56,189,248,.23);opacity:0;transform:scale(.8)}
+    .listening .orb{filter:saturate(1.2);box-shadow:0 0 0 1px rgba(255,255,255,.28) inset,0 18px 80px rgba(56,189,248,.48),0 0 54px rgba(34,211,238,.38)}
+    .listening .orb:before{animation:pulse 1.6s ease-out infinite}
+    .listening .orb:after{animation:pulse 1.6s .75s ease-out infinite}
+    @keyframes pulse{0%{opacity:.8;transform:scale(.84)}100%{opacity:0;transform:scale(1.5)}}
+    .mic{position:absolute;inset:0;display:grid;place-items:center;font-size:31px;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+    .live-label{position:relative;margin-top:16px;font-size:15px;font-weight:650}
+    .live-hint{position:relative;margin-top:5px;min-height:18px;color:var(--muted);font-size:12px;text-align:center;padding:0 20px}
+    .conversation{min-height:0;overflow:auto;padding:4px 2px 12px;scrollbar-width:none;mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 100%)}
+    .conversation::-webkit-scrollbar{display:none}
+    .empty{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--muted);text-align:center;font-size:13px;line-height:1.7}
+    .bubble{max-width:88%;padding:12px 14px;border-radius:18px;margin:10px 0;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;animation:rise .24s ease-out}
+    @keyframes rise{from{opacity:0;transform:translateY(6px)}}
+    .bubble.user{margin-left:auto;background:linear-gradient(145deg,#1769e0,#2854bb);border-bottom-right-radius:6px;box-shadow:0 9px 24px rgba(37,99,235,.15)}
+    .bubble.agent{margin-right:auto;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px;color:#e7eef7;backdrop-filter:blur(12px)}
+    .bubble.progress{color:#a5dff9;border-color:rgba(56,189,248,.22)}
+    footer{min-width:0;padding-top:10px}
+    .quick{display:flex;width:100%;min-width:0;gap:8px;overflow:auto;padding:0 0 10px;scrollbar-width:none}
+    .quick::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto;border:1px solid var(--line);background:rgba(15,30,48,.62);color:#cbd5e1;border-radius:999px;padding:8px 11px;font-size:12px;white-space:nowrap}
+    .composer{display:flex;width:100%;min-width:0;gap:8px;align-items:center;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.78);padding:7px 7px 7px 14px;border-radius:22px;backdrop-filter:blur(16px);box-shadow:0 16px 36px rgba(0,0,0,.2)}
+    .composer input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:15px;line-height:24px}
+    .composer input::placeholder{color:#65758a}
+    .send{width:42px;height:42px;border:0;border-radius:16px;background:#e2e8f0;color:#0f172a;font-size:20px;font-weight:900;display:grid;place-items:center}
+    .setup{position:fixed;inset:0;background:#06101d;display:none;align-items:center;justify-content:center;padding:28px;z-index:20}
+    .setup.show{display:flex}
+    .setup-card{max-width:420px;background:#0f1e30;border:1px solid var(--line);border-radius:24px;padding:26px;text-align:center}
+    .setup h1{font-size:23px;margin:0 0 10px}.setup p{color:var(--muted);line-height:1.7;margin:0}
+    .interim{position:absolute;bottom:18px;left:18px;right:18px;text-align:center;color:#bae6fd;font-size:13px;min-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @media(min-height:800px){main{grid-template-rows:minmax(250px,.85fr) minmax(260px,1fr)}.orb{width:124px;height:124px}}
+    @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.brand{font-size:14px;gap:8px}.mark{width:32px;height:32px}.status{padding:6px 8px;font-size:11px}}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand"><div class="mark"></div><div>Agent OS Live</div></div>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">姝ｅ湪杩炴帴</span></div>
+    </header>
+    <main>
+      <section class="live" id="live">
+        <div class="aura"></div>
+        <button class="orb" id="orb" aria-label="寮€濮嬭闊?><span class="mic">鉁?/span></button>
+        <div class="live-label" id="liveLabel">鐐逛竴涓嬪紑濮嬭繛缁璇?/div>
+        <div class="live-hint" id="liveHint">鍙互鐩存帴闂€滅煭鍓ч」鐩仛鍒板摢浜嗏€?/div>
+        <div class="interim" id="interim"></div>
+      </section>
+      <section class="conversation" id="conversation">
+        <div class="empty" id="empty">璇村嚭浣犵殑鎰忓浘鍗冲彲銆?br>椤圭洰瀹氫綅銆佽浆鍙戙€佹墽琛屽拰杩涘害鍥炴姤鐢?Agent OS 瀹屾垚銆?/div>
+      </section>
+    </main>
+    <footer>
+      <div class="quick">
+        <button class="chip" data-text="鎴戞湁鍝簺椤圭洰">鎴戞湁鍝簺椤圭洰</button>
+        <button class="chip" data-text="鐭墽椤圭洰鍋氬埌鍝簡">鐭墽椤圭洰鍋氬埌鍝簡</button>
+        <button class="chip" data-text="瀹屾垚鍚庣洿鎺ュ紑濮嬬浜岄樁娈?>瀹屾垚鍚庡紑濮嬬浜岄樁娈?/button>
+      </div>
+      <form class="composer" id="form">
+        <input id="input" autocomplete="off" enterkeyhint="send" placeholder="杈撳叆锛屾垨浣跨敤閿洏涓婄殑璇煶鎸夐挳">
+        <button class="send" aria-label="鍙戦€?>鈫?/button>
+      </form>
+    </footer>
+  </div>
+  <div class="setup" id="setup"><div class="setup-card"><h1>杩樻病鏈夊拰鐢佃剳閰嶅</h1><p>璇峰湪宸ヤ綔鐢佃剳鎵撳紑 Agent OS锛岀敤鎵嬫満鐩告満鎵弿绐楀彛閲岀殑浜岀淮鐮併€傚彧闇€涓€娆°€?/p></div></div>
+  <script>
+    const enc = new TextEncoder(), dec = new TextDecoder();
+    const $ = id => document.getElementById(id);
+    const state = {pair:null,key:null,deviceId:null,source:null,listening:false,recognition:null,lastHeartbeat:0,pending:new Map(),silence:null,finalText:""};
+    document.documentElement.dataset.agentOsCapabilities=JSON.stringify({
+      webCrypto:Boolean(window.crypto&&window.crypto.subtle),
+      eventSource:"EventSource" in window,
+      speechSynthesis:"speechSynthesis" in window,
+      speechRecognition:Boolean(window.SpeechRecognition||window.webkitSpeechRecognition),
+      secureContext:window.isSecureContext
+    });
+    const toBytes = value => { const p="=".repeat((4-value.length%4)%4); const s=atob(value.replace(/-/g,"+").replace(/_/g,"/")+p); return Uint8Array.from(s,c=>c.charCodeAt(0)); };
+    const toB64 = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+    const uuid = () => crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    function loadPair(){
+      const value = new URLSearchParams(location.hash.slice(1)).get("pair");
+      if(value){
+        try{ localStorage.setItem("agent-os-pair",dec.decode(toBytes(value))); history.replaceState(null,"",location.pathname+location.search); }catch{}
+      }
+      const saved=localStorage.getItem("agent-os-pair");
+      if(!saved) return null;
+      try{return JSON.parse(saved)}catch{return null}
+    }
+    async function init(){
+      state.pair=loadPair();
+      if(!state.pair||state.pair.v!==1){$("setup").classList.add("show");return}
+      state.deviceId=localStorage.getItem("agent-os-device")||uuid(); localStorage.setItem("agent-os-device",state.deviceId);
+      state.key=await crypto.subtle.importKey("raw",toBytes(state.pair.k),"AES-GCM",false,["encrypt","decrypt"]);
+      connect(); setupVoice(); sendEnvelope("hello",{}); updateOnline(); setInterval(updateOnline,5000);
+    }
+    async function encrypt(payload){
+      const iv=crypto.getRandomValues(new Uint8Array(12));
+      const data=await crypto.subtle.encrypt({name:"AES-GCM",iv,additionalData:enc.encode("agent-os-v1")},state.key,enc.encode(JSON.stringify(payload)));
+      return JSON.stringify({v:1,n:toB64(iv),c:toB64(new Uint8Array(data))});
+    }
+    async function decrypt(wire){
+      const value=JSON.parse(wire);
+      const data=await crypto.subtle.decrypt({name:"AES-GCM",iv:toBytes(value.n),additionalData:enc.encode("agent-os-v1")},state.key,toBytes(value.c));
+      return JSON.parse(dec.decode(data));
+    }
+    async function sendEnvelope(kind,body){
+      const envelope={v:1,id:uuid(),ts:Date.now(),kind,from:state.deviceId,to:"desktop",body};
+      const wire=await encrypt(envelope);
+      const response=await fetch(`${state.pair.r}/${encodeURIComponent(state.pair.t)}`,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:wire});
+      if(!response.ok) throw new Error("娑堟伅娌℃湁閫佽揪");
+      return envelope.id;
+    }
+    function connect(){
+      if(state.source) state.source.close();
+      state.source=new EventSource(`${state.pair.r}/${encodeURIComponent(state.pair.t)}/sse?since=10m`);
+      state.source.addEventListener("open",()=>{$("statusText").textContent="绛夊緟鐢佃剳"});
+      state.source.addEventListener("message",async event=>{
+        try{
+          const outer=JSON.parse(event.data); if(!outer.message)return;
+          const msg=await decrypt(outer.message);
+          if(msg.from!==state.pair.d||!(msg.to===state.deviceId||msg.to==="mobile"))return;
+          if(msg.kind==="heartbeat"){state.lastHeartbeat=Date.now();updateOnline();return}
+          if(msg.kind!=="event")return;
+          state.lastHeartbeat=Date.now();updateOnline();handleEvent(msg.body||{});
+        }catch{}
+      });
+      state.source.onerror=()=>{$("statusText").textContent="姝ｅ湪閲嶈繛";setOnline(false)};
+    }
+    function setOnline(online){$("status").classList.toggle("online",online)}
+    function updateOnline(){
+      const online=Date.now()-state.lastHeartbeat<65000; setOnline(online);
+      $("statusText").textContent=online?"鐢佃剳鍦ㄧ嚎":"绛夊緟鐢佃剳";
+    }
+    function addBubble(text,type,requestId){
+      $("empty")?.remove();
+      if(requestId&&type!=="user"&&state.pending.has(requestId)){
+        const old=state.pending.get(requestId); if(old?.isConnected)old.remove(); state.pending.delete(requestId);
+      }
+      const el=document.createElement("div");el.className=`bubble ${type}`;el.textContent=text;$("conversation").appendChild(el);$("conversation").scrollTop=$("conversation").scrollHeight;
+      if(requestId&&type==="progress")state.pending.set(requestId,el);
+      return el;
+    }
+    function handleEvent(body){
+      const stage=body.stage||""; const text=body.message||"";
+      if(stage==="accepted") { addBubble(text,"agent progress",body.requestId); return; }
+      if(["started","running","queued","dequeued"].includes(stage)){addBubble(text,"agent progress",body.requestId);return}
+      addBubble(text,"agent",body.requestId);
+      if(["completed","failed","needs_input"].includes(stage)){speak(text);notify(text)}
+    }
+    async function sendText(text){
+      text=(text||"").trim();if(!text||!state.pair)return;
+      speechSynthesis.cancel();addBubble(text,"user");$("input").value="";
+      try{const id=await sendEnvelope("command",{text});state.pending.set(id,null)}catch(error){addBubble(`娌℃湁閫佽揪锛?{error.message}`,"agent")}
+    }
+    function speak(text){
+      if(!("speechSynthesis" in window))return;
+      speechSynthesis.cancel();const value=new SpeechSynthesisUtterance(text.replace(/https?:\/\/\S+/g,""));value.lang="zh-CN";value.rate=1.05;value.pitch=1;
+      const voices=speechSynthesis.getVoices();value.voice=voices.find(v=>/zh|Chinese|Ting|Meijia|Xiaoxiao/i.test(`${v.lang} ${v.name}`))||null;
+      speechSynthesis.speak(value);
+    }
+    function notify(text){
+      if(document.hidden&&"Notification" in window&&Notification.permission==="granted")new Notification("Agent OS",{body:text.slice(0,180)});
+    }
+    function setupVoice(){
+      const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!Recognition){$("liveHint").textContent="褰撳墠娴忚鍣ㄤ笉鏀寔杩炵画璇煶锛屽彲浣跨敤閿洏涓婄殑楹﹀厠椋?;return}
+      const recognition=new Recognition();state.recognition=recognition;recognition.lang="zh-CN";recognition.continuous=true;recognition.interimResults=true;
+      recognition.onresult=event=>{
+        let interim="";let final="";
+        for(let i=event.resultIndex;i<event.results.length;i++){const value=event.results[i][0].transcript;if(event.results[i].isFinal)final+=value;else interim+=value}
+        $("interim").textContent=interim;
+        if(final){state.finalText+=final;clearTimeout(state.silence);state.silence=setTimeout(()=>{const text=state.finalText;state.finalText="";$("interim").textContent="";sendText(text)},650)}
+      };
+      recognition.onend=()=>{if(state.listening)setTimeout(()=>{try{recognition.start()}catch{}},250)};
+      recognition.onerror=event=>{if(event.error==="not-allowed"){state.listening=false;$("live").classList.remove("listening");$("liveHint").textContent="璇峰厑璁搁害鍏嬮鏉冮檺鍚庡啀璇?}};
+    }
+    function toggleVoice(){
+      if(speechSynthesis.speaking)speechSynthesis.cancel();
+      if(!state.recognition){$("input").focus();return}
+      state.listening=!state.listening;$("live").classList.toggle("listening",state.listening);$("liveLabel").textContent=state.listening?"姝ｅ湪鍚紝浣犲彲浠ヨ繛缁":"鐐逛竴涓嬪紑濮嬭繛缁璇?;$("liveHint").textContent=state.listening?"鍐嶇偣涓€涓嬫殏鍋?:"鍙互鐩存帴闂€滅煭鍓ч」鐩仛鍒板摢浜嗏€?;
+      if(state.listening){if("Notification" in window&&Notification.permission==="default")Notification.requestPermission().catch(()=>{});try{state.recognition.start()}catch{}}
+      else{try{state.recognition.stop()}catch{};$("interim").textContent=""}
+    }
+    $("orb").addEventListener("click",toggleVoice);
+    $("form").addEventListener("submit",event=>{event.preventDefault();sendText($("input").value)});
+    document.querySelectorAll(".chip").forEach(button=>button.addEventListener("click",()=>sendText(button.dataset.text)));
+    init();
+  </script>
+</body>
+</html>
+
